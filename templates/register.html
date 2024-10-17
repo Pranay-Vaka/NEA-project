@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+        integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+        crossorigin="anonymous"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+
+
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename = 'styles.css')}}">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+
+</head>
+
+<body>
+
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{url_for('register_requests_page')}}">Register requests<span
+                            class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('file_page')}}">Files</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item" id="register_requests_page_link">
+                    <a class="nav-link" href="{{url_for('chat_page')}}">Chats</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('sign_in_page')}}">Sign Out</a>
+                </li>
+            </ul>
+        </div>
+
+    </nav>
+
+    <script src="{{url_for('static', filename='/js_files/general_module.js')}}"></script>
+    <script src="{{url_for('static', filename='/js_files/encryption.js')}}"></script>
+    <script src="{{url_for('static', filename='/js_files/register_page_logic.js')}}"></script>
+
+
+    <script>
+        if (sessionStorage.getItem("username") == "" || sessionStorage.getItem("username") == null) {
+            redirect_page("{{url_for('sign_in_page')}}")
+        }
+
+        if (sessionStorage.getItem("privilege") != "admin") {
+            redirect_page("{{url_for('file_page')}}")
+        }
+    </script>
+
+
+    <div class="center">
+        <h1><u>Handle register reqests</u></h1>
+    </div>
+
+
+    <div class="post_container" id="posts">
+        <h4 id="username"><b><u></u></b></h4>
+        <label class="radio">
+            <input type="radio" name="privilege_choice" id="general" value="general" checked>
+            General
+        </label>
+
+        <label class="radio">
+            <input type="radio" name="privilege_choice" id="admin" value="admin">
+            Admin
+        </label>
+
+        <label class="radio">
+            <input type="radio" name="decision_choice" id="accept" value="accept">
+            Accept
+        </label>
+
+        <label class="radio">
+            <input type="radio" name="decision_choice" id="reject" value="reject" checked>
+            Reject
+        </label>
+
+
+        <input type="submit" name="register_button" id="register" value="Submit">
+    </div>
+
+    <style>
+        body {
+            background-color: #212121;
+            color: white
+        }
+    </style>
+
+</body>
+
+</html>

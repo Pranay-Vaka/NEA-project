@@ -1,0 +1,273 @@
+import random
+from io import BytesIO
+from flask import Flask, render_template, url_for, request, redirect, flash, get_flashed_messages, send_file
+import sqlite3
+from datetime import datetime
+import database
+import encryption
+import json
+
+user_details = {
+        "username": "",
+        "password": "",
+        "authority": ""
+        }
+
+class Room:
+    
+    def __init__(self, room_name, content = [["empty name", "empty date", "empty content"]]):
+    
+        self.room_name = room_name
+        self.content = content
+
+    
+    def get_content(self):
+        
+        connection = sqlite3.connect("files.db")
+        
+        crsr = connection.cursor()
+        
+        sql_command = """SELECT * FROM General;"""
+        
+        crsr.execute(sql_command)
+        
+        self.content = crsr.fetchall()
+        
+        connection.close()
+
+        
+
+    def save_content(self, content, name):
+        
+        now = datetime.now()
+        
+        connection = sqlite3.connect("files.db")
+        
+        crsr = connection.cursor()
+        
+        sql_command = f"""INSERT INTO General VALUES ('{name}','{now.strftime("%d/%m/%Y, %H:%M")}', '{content}');"""
+
+        crsr.execute(sql_command) 
+        
+        connection.commit()
+        
+        connection.close()
+
+
+def check_exists(username):
+    
+    connection = sqlite3.connect("files.db")
+    
+    crsr = connection.cursor()
+    
+    sql_command = """SELECT * from Users;"""
+
+    crsr.execute(sql_command) 
+    
+    users = crsr.fetchall()
+    
+    user_content = ""
+
+    for user in users:
+        
+        if user[0] == username:
+            user_content = user
+            break
+
+    connection.close()
+
+    return user_content
+
+
+
+class Standard():
+    
+    def __init__(self, username, level):
+        
+        self.username = username
+        self.level = level
+
+    def get_name(self):
+        
+        return self.username
+
+    def get_level():
+
+        return self.level
+
+
+
+app = Flask(__name__)
+
+
+
+@app.route("/", methods = ["GET", "POST"])
+def file_page():
+   
+    table_data = database.get_table_data()
+    search_result = "Nothing found"
+
+    if request.method == "POST":
+    
+        if "submit_button" in request.form:
+            
+            file = request.files['file']
+            now = datetime.now()
+            
+            if file.filename == "": 
+                return redirect(url_for("file_page"))
+
+            else:
+
+                content = database.code(file.read().decode("UTF-8"))
+                connection = sqlite3.connect("files.db")
+                crsr = connection.cursor()
+                sql_command = f"""INSERT INTO upload VALUES ('{random.randint(1000, 9999)}', '{file.filename}',
+                "{content}", '{now.strftime("%d/%m/%Y, %H:%M")}');
+                """
+                
+                crsr.execute(sql_command)
+                connection.commit()
+                connection.close()
+                return redirect(url_for("file_page"))
+                    
+        elif "download_button" in request.form:
+
+            values = request.form.getlist("file_checkbox")
+             
+            connection = sqlite3.connect("files.db")
+
+            crsr = connection.cursor()
+             
+            for i in values:
+                
+                sql_command = f"""SELECT id, filename, data FROM upload WHERE id = {i}"""
+                crsr.execute(sql_command)
+                array = crsr.fetchall()
+                content = database.decode(array[0][2])
+                
+                with open(f"Downloads/{array[0][1]}", "w") as file:
+                    file.write(content)
+            
+
+            return redirect(url_for("file_page"))
+        
+        elif "delete_button" in request.form:
+
+            values = request.form.getlist("file_checkbox")
+             
+            connection = sqlite3.connect("files.db")
+
+            crsr = connection.cursor()
+             
+            for i in values:
+                
+                sql_command = f"""DELETE FROM upload WHERE id = {i};"""
+                crsr.execute(sql_command)
+                connection.commit()
+
+            connection.close()
+
+            return redirect(url_for("file_page"))
+
+        elif "sort_in_alphabetical_order" in request.form:
+            
+            data = database.merge_sort(table_data)
+            table_data = data
+
+        elif "sort_in_reverse_alphabetical_order" in request.form:
+            
+            data = database.merge_sort(table_data)
+            data.reverse()
+            table_data = data
+
+
+        elif "search_button" in request.form:
+
+            search_request = request.form.get("search")
+            data = database.merge_sort(table_data)
+
+            if database.binary_search(data, search_request) != -1:
+                search_result = f"{search_request} exists in the database"
+
+
+    return render_template("file.html", table_data = table_data, search_result = search_result)
+
+
+@app.route("/chat", methods = ["GET", "POST"])
+def chat_page():
+    
+    e, d, n = encryption.generate_keys(32)
+
+    room = Room("General")
+
+    room_name = room.room_name
+
+    room.get_content()
+    
+    if request.method == "POST":
+
+        if "post_chat" in request.form:
+            
+            encrypted_data = encryption.encrypt(e, n, request.form.get("chat_textarea"))
+
+            content = encryption.decrypt(d, n, encrypted_data)
+
+            room.save_content(content, name)
+                 
+            room.get_content()
+            
+            return redirect(url_for("chat_page"))
+
+
+    return render_template("chat.html", content = room.content, room_name = room_name, public_key = [e, n])
+
+@app.route("/signin", methods = ["GET", "POST"])
+def sign_in_page():
+
+    success_value = ""
+
+    def check_credentials(username, password):
+        
+        with open("credentials.json", "r") as credentials:
+            
+            data  = json.load(credentials)
+            
+            if username in data:
+                
+                if data[username] == password:
+                    
+                    return True
+
+            else:
+
+                return False
+        
+    
+    if request.method == "POST":
+
+        if "submit_button" in request.form:
+            
+            username = request.form.get("username")
+            password = request.form.get("password")
+
+            if check_credentials(username, password):
+                
+                user_details["username"] = username
+                user_details["password"] = password 
+
+                return redirect(url_for("file_page"))
+
+            else:
+
+                success_value = "Incorrect Credentials"
+                
+                return redirect(url_for("sign_in_page", success_value = success_value))
+        
+    return render_template("sign_in.html", success_value = success_value)
+
+
+if __name__ == "__main__":
+    
+    app.run(debug = True)
+

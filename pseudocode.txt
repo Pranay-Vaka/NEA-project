@@ -1,0 +1,745 @@
+Hash function
+
+
+
+function hash_function(username) {
+
+    hash <-- 1
+
+    for character in username {
+
+        hash <-- hash * decimal_value(character)
+
+    }
+
+    index <-- hash mod 223
+
+    return index
+
+}
+
+
+
+
+rle compression
+
+
+
+string <-- "aaabbc"
+
+
+function rle(string) {
+
+    dict <-- {}
+
+
+    for character in string {
+
+        total <-- 1
+
+        if i + 1 = 1 {
+
+            total <-- total + 1
+
+        }
+
+        else {
+
+            dict[i] <-- total
+
+            total <-- 1
+        }
+
+    }
+
+    return dict
+
+
+}
+
+
+rle compressed form
+
+{
+
+    “a”: 3,
+    “b”: 2,
+    “c”: 1
+
+}
+
+
+compression logic
+
+function count_frequency(data) {
+
+    frequency_dict <-- {}
+
+    for character in data {
+
+        if character in frequency_dict {
+
+            frequency_dict[character] <-- frequency_dict[character] + 1
+
+        }
+
+        else {
+
+            frequency_dict[character] <-- 1
+
+        }
+    }
+
+    return frequency_dict
+}
+
+
+class node {
+
+    function constructor(self, frequency, character, code = "", left = None, right = None) {
+
+        self.left <-- left
+
+        self.right <-- right
+
+        self.code <-- code
+
+        self.frequency <-- frequency
+
+        self.character <-- character
+
+    }
+
+    function check_if_leaf(self) {
+
+
+        try {
+
+            if self.left.character = None and self.right.character = None {
+
+                return True
+            }
+
+        }
+
+        else {
+
+            return False
+
+        }
+    }
+
+}
+
+
+
+function create_nodes_list(count_frequency) {
+
+    nodes_list <-- []
+
+    for character, frequency in count_frequency {
+
+        nodes_list.push(node(frequency, character))
+
+    }
+
+    return nodes_list
+
+}
+
+
+
+
+
+
+
+function calculate_codes(node) {
+
+    codes <-- {}
+
+    new_code <-- ""
+
+    function recursive_calculate_codes(node, new_code = "") {
+
+        new_code <-- str(node.code)
+
+        if node.left != None {
+
+            recursive_calculate_codes(node.left, new_code)
+        }
+
+        if node.right != None {
+
+            recursive_calculate_codes(node.right, new_code)
+
+        }
+
+        if node.left = None and node.right = None {
+            code[node.character] <-- new_code
+        }
+
+        return codes
+    }
+
+    return recursive_calculate_codes(node, new_code)
+
+}
+
+
+function merge_sort(data) {
+
+	if data.length = 0 or data.length = 1 {
+		
+		return data
+
+	}
+
+	middle <-- data.length // 2
+
+	right_array <-- data[middle:]
+	left_array <-- data[:middle]
+
+	merge_sort(left_array)
+	merge_sort(right_array)
+
+	i <-- 0
+	j <-- 0
+	k <-- 0
+
+	while i < left_array.length and j < right_array.length {
+		
+		if left_array[i].frequency <= right_array[j].frequency {
+			
+			data[k] <-- left_array[i]
+			i <-- i + 1
+
+		}
+
+		elif left_array[i].frequency > right_array[j].frequency {
+
+			data[k] <-- right_array[j]
+			j <-- j + 1
+
+		}
+
+		k <-- k + 1
+
+	}
+
+	while i < left_array.length {
+
+		data[k] <-- left_array[i]
+
+		k <-- k + 1
+		i <-- i + 1
+	
+	}
+
+	while j < right_array.length {
+
+		data[k] <-- right_array[j]
+
+		k <-- k + 1
+		j <-- j + 1
+
+	}
+
+	return data
+
+}
+
+
+
+function generate_tree(nodes_list) {
+	
+	while nodes_list.length > 1 {
+
+		nodes_list <-- merge_sort(nodes_list)
+
+
+		left <-- nodes_list[1]
+		right <-- nodes_list[0]
+
+
+		left.code <-- "0"
+		right.code <-- "1"
+
+		total_freqency <-- left.frequency + right.frequency
+		new_character <-- left.character + right.character
+
+		nodes_list.remove(left)
+		nodes_list.remove(right)
+
+		nodes_list.push(node(total_freqency, new_character, code <-- "", left <-- left, right <-- right))
+
+
+	return nodes_list[0]
+
+	}
+}
+
+
+function convert_data(data, coding) {
+	
+	converted_data <-- ""
+
+	for character in data {
+
+		converted_data <-- converted_data + coding[character]
+	}
+
+
+	return converted_data
+
+}
+
+
+
+
+function decode_data(coded_data, tree) {
+
+	root <-- tree
+
+	decoded_string <-- ""
+
+	for i in coded_data {
+		
+		if character = "1" {
+			
+			root <-- root.right
+
+		}
+
+		elif character = "0" {
+
+			root <-- root.left
+		
+		}
+
+		if root.check_if_leaf() = True {
+		
+			decoded_string <-- decoded_string + root.character
+			root <-- tree
+
+		}
+	
+	}
+
+}
+
+
+
+
+
+function caesar_cipher(data, shift_val) {
+	
+	final_string <-- ""
+
+	for i in data {
+
+		final_string <-- character((ord(i) + shift_val) + 256)
+	}
+
+	return final_string
+
+}
+
+
+
+
+
+function get_primes(key_size) {
+
+	return randint(10 * keysize, 9 * (keysize + 1))
+
+}
+
+
+
+function miller_rabin(prime, cycles) {
+
+	r <-- 0
+	s <-- prime - 1
+
+
+	while s mod 2 = 0 {
+
+		r <-- r + 1
+		s <-- s // 2
+
+	}
+
+	for i in range(cycles) {
+
+		a <-- randint(2, prime - 2)
+
+		x <-- (a ^ s) mod prime
+
+		if x = 1 or x = prime - 1 {
+
+			repeat_cycle
+
+		}
+
+		for i in range(r - 1) {
+
+			x <-- (x ^ 2) mod prime
+
+			if x = prime - 1 {break}
+
+
+		}
+
+		else {return False}
+
+	}
+
+	return True
+
+}
+
+
+function check_prime(num) {
+
+	low_primes <-- [2, 3, 5, ..., 991, 997]
+
+	for prime in low_primes {
+
+		if num mod prime = 0 {
+
+			return False
+
+		}
+
+	}
+
+	return miller_rabin(num)
+
+}
+
+
+
+totient
+
+p <-- generate_prime(keysize)
+q <-- generate_prime(key_size)
+
+prime_product <-- p * q
+phi_n <-- (p - 1) * (q - 1)
+
+
+function gcd(p, q) {
+
+	while q != None {
+		
+		p, q <-- q, p mod q
+	
+	}
+
+	return p
+}
+
+
+function modular_inverse(p, q) {
+
+	x <-- gcd(p, q)
+	private_key <-- x mod q
+	return private_key
+
+}
+
+
+function encrypt(data) {
+
+	encrypted_data <-- ""
+
+	for i in data {
+		
+		char_ord <-- decimal(i)
+
+		encrypted_data <-- encrypted_data + str((char_ord ^ public_key) mod prime_product) + " "
+
+	}
+
+	return encrypted_data
+
+}
+
+
+
+function decrypt(data) {
+
+	decrypted_data <-- ""
+
+	encrypted_data_list <-- data.split()
+
+	for character in encrypted_data_list {
+
+		if character != None {
+
+			decrypted_data += chr((int(character) ** private_key) % prime_product)
+
+		}
+	}
+
+
+	return decrypted_data
+
+
+}
+
+
+
+class circular_queue {
+
+	function constructor(self, size) {
+
+		self.max_size <-- size
+		self.queue <-- ["" for i in range(self.max_size)]
+		self.front <-- -1
+		self.rear <-- -1
+
+	}
+
+
+	function check_queue_full(self) {
+		
+		if (self.rear + 1) mod self.max_size = self.front {return True}
+		else {return False}
+
+	}
+
+	function check_queue_empty(self) {
+		
+		if self.front = -1 {return True}
+		else {return False}
+
+	}
+
+
+	function peek(self) {return self.queue[self.front]}
+
+
+	function enqueue(self, data) {
+
+		if self.check_queue_full() = True {return "full"}
+
+		elif self.front = -1 {
+			
+			self.front <-- 0
+			self.rear <-- 0
+			self.queue[self.rear] <-- data
+
+		}
+
+		else {
+		
+		self.rear <-- (self.rear + 1) mod self.max_size
+		self.queue[self.rear] <-- data
+
+		}
+
+	}
+
+	function dequeue(self) {
+
+		if self.check_queue_empty() = True {return "empty"}
+		
+		elif self.rear = self.front {
+			
+			self.queue[self.front] <-- ""
+			self.front <-- self.rear - 1
+
+		}
+
+		else {
+
+			self.queue[self.front] <-- ""
+			self.front <-- (self.front + 1) mod self.max_size
+
+		}
+	}
+
+
+}
+
+
+
+username <-- input()
+password <-- input()
+
+if username or password = "" {
+	return False
+}
+
+hash_id <-- hash_function(username)
+if username in credentials[hash_id] {
+	
+	return False
+
+}
+
+data <-- credentials[hash_id]
+
+else {
+
+	if data["password"] = password {
+
+		return True
+	}
+
+	else {
+		
+		return False
+
+	}
+
+}
+
+
+false_credentials <-- 0
+
+username, password <-- input()
+
+if false_credentials = 5 {
+
+	print("Too many false credentials at once, please try again later")
+	datetime.wait(1min)
+
+}
+
+if check_credentials(username, password) = False {
+
+	counter <-- counter + 1
+
+}
+
+if check_credentials(username, password) = True {
+
+	continue
+}
+
+queue_length <-- 5
+
+socketio.on("change_queue_length")
+function change_queue_length(new_queue_length) {
+	queue_length <-- new_queue_length
+	json.dump <-- queue_length
+}
+
+
+
+function rle(encoded_data) {
+
+	compressed_data <-- {}
+	
+	for code in encoded_data {
+		
+		coded_set = {}
+
+		if code + 1 = code {
+			coded_set <-- {code: frequency + 1}
+		}
+
+		else {
+			compressed_data.push({coded_set})
+			coded_set <-- {code + 1: 1}
+		}
+
+	}
+}
+
+
+class file {
+
+	function constructor(self, file_content, file_tree, file_privilege, file_uploader) {
+
+		self.file_content <-- file_content
+		self.file_tree <-- file_tree
+		self.file_privilege <-- file_privilege
+		self.file_privilege <-- file_uploader
+	}
+
+	function check_private(self) {
+
+		if self.file_privilege = "private" {
+			retrun True
+		}
+
+	}
+
+}
+
+function binary_search(data, search_val, low, high) {
+	
+	while low <= high {
+
+		mid <-- low + (high - low) //2
+
+		if search_val in data[mid] {return mid}
+
+		elif data[mid] < search_val {low <-- mid + 1}
+
+		else {high <-- mid - 1}
+
+	}
+
+	return "not_existent"
+}
+
+
+class AdminRoom(Room) {
+	
+	function constructor(self) {
+		
+		extend Room
+		self.users <-- []
+
+	}
+
+	function add_user(self, user) {
+		
+		if user.privilege = "admin" {
+			self.users.push(user)
+		}
+
+		else {
+			alert("You do not have admin privileges")
+			return
+		}
+
+	}
+
+}
+
+function check_values(p, q) {
+
+	check_value <-- 2 * (p * q) ^ (1/4)
+	if absolute_value(p - q) < check_value {
+		return "key is insecure"
+	}
+
+}
+
+
+function lucas_lehmer(p) {
+
+	s <-- 4
+	m <-- (2^p) - 1
+
+	for i in range(p - 2) {
+		s <-- ((s^2) - 2) mod m
+	}
+
+	if s = 0 {
+		return "prime"
+	}
+
+	else {
+		return "not prime"
+	}
+
+}
+
+
+
